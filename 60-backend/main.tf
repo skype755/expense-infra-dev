@@ -12,18 +12,21 @@ resource "aws_instance" "backend" {
 }
 
 resource "null_resource" "backend" {
-  # Changes to any instance of the instance requires re-provisioning
   triggers = {
     instance_id = aws_instance.backend.id
   }
 
-  # Bootstrap script can run on any instance of the cluster
-  # So we just choose the first in this case
   connection {
-    host = aws_instance.backend.private_ip
-    type = "ssh"
-    user     = "ec2-user"
-    password = "DevOps321"
+    type             = "ssh"
+    user             = "ec2-user"
+    password         = "DevOps321"
+    host             = aws_instance.backend.private_ip
+
+# we need to give bastion public ip connected from bastion host
+# and user name and password for bastion ip as well
+   bastion_host     = data.aws_ssm_parameter.bastion_ip.value
+    bastion_user     = "ec2-user"
+    bastion_password = "DevOps321"
   }
 
   provisioner "file" {
@@ -32,10 +35,14 @@ resource "null_resource" "backend" {
   }
 
   provisioner "remote-exec" {
-    # Bootstrap script called with private_ip of each node in the cluster
     inline = [
       "chmod +x /tmp/backend.sh",
       "sudo sh /tmp/backend.sh ${var.environment}"
     ]
   }
+}
+
+resource "aws_ec2_instance_state" "backend" {
+  instance_id = aws_instance.backend.id
+  state       = "stopped"
 }

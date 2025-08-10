@@ -14,3 +14,8 @@ variable "common_tags" {
     }
 }
 
+
+# variable "bastion_public_ip" {
+#   description = "Public IP of bastion host"
+#   type        = string
+# }

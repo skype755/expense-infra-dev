@@ -11,3 +11,10 @@ resource "aws_instance" "bastion" {
     }
   )
 }
+
+# Store bastion public IP in SSM Parameter Store
+resource "aws_ssm_parameter" "bastion_public_ip" {
+  name  = "/bastion/public_ip"
+  type  = "String"
+  value = aws_instance.bastion.public_ip
+}
