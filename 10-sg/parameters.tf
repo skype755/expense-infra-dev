@@ -10,6 +10,12 @@ resource "aws_ssm_parameter" "backend_sg_id" {
   value = module.backend_sg.sg_id
 }
 
+resource "aws_ssm_parameter" "backend_sg_new_id" {
+  name  = "/${var.project_name}/${var.environment}/backend_sg_new_id"
+  type  = "String"
+  value = module.backend_sg_new.sg_id
+}
+
 resource "aws_ssm_parameter" "frontend_sg_id" {
   name  = "/${var.project_name}/${var.environment}/frontend_sg_id"
   type  = "String"
