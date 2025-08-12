@@ -1,8 +1,6 @@
 resource "aws_instance" "backend" {
   ami                    = data.aws_ami.joindevops.id # golden AMI
-  vpc_security_group_ids = [module.backend_sg.sg_id] # ✅ use the SG from Terraform
-
-  #vpc_security_group_ids = [data.aws_ssm_parameter.backend_sg_id.value]
+  vpc_security_group_ids = [data.aws_ssm_parameter.backend_sg_id.value]
   instance_type          = "t3.micro"
   subnet_id              = local.private_subnet_id
   tags = merge(
@@ -24,11 +22,10 @@ resource "null_resource" "backend" {
     password = "DevOps321"
     host     = aws_instance.backend.private_ip
 
-    # we need to give bastion public ip connected from bastion host
-    # and user name and password for bastion ip as well
     bastion_host     = data.aws_ssm_parameter.bastion_ip.value
     bastion_user     = "ec2-user"
     bastion_password = "DevOps321"
+
   }
 
   provisioner "file" {
@@ -108,11 +105,11 @@ resource "aws_launch_template" "backend" {
 # auto scaling gorup ASG
 resource "aws_autoscaling_group" "backend" {
   name                      = "${var.project_name}-${var.environment}-backend"
-  max_size                  = 10
+  max_size                  = 1
   min_size                  = 1
   health_check_grace_period = 60 # 3 minutes for instance to intialise
   health_check_type         = "ELB"
-  desired_capacity          = 2
+  desired_capacity          = 1
 
   # we need to give ASG wich target we need to lauch 
   target_group_arns = [aws_lb_target_group.backend.arn]
