@@ -107,7 +107,7 @@ resource "aws_autoscaling_group" "backend" {
   name                      = "${var.project_name}-${var.environment}-backend"
   max_size                  = 1
   min_size                  = 1
-  health_check_grace_period = 60 # 3 minutes for instance to intialise
+  health_check_grace_period = 180 # 3 minutes for instance to intialise
   health_check_type         = "ELB"
   desired_capacity          = 1
 
@@ -149,19 +149,19 @@ resource "aws_autoscaling_group" "backend" {
   }
 }
 
-# # auto scaling group policy
-# resource "aws_autoscaling_policy" "backend" {
-#   name                   = "${local.resource_name}-backend"
-#   policy_type            = "TargetTrackingScaling"
-#   autoscaling_group_name = aws_autoscaling_group.backend.name
-#   target_tracking_configuration {
-#     predefined_metric_specification {
-#       predefined_metric_type = "ASGAverageCPUUtilization"
-#     }
+# auto scaling group policy
+resource "aws_autoscaling_policy" "backend" {
+  name                   = "${local.resource_name}-backend"
+  policy_type            = "TargetTrackingScaling"
+  autoscaling_group_name = aws_autoscaling_group.backend.name
+  target_tracking_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ASGAverageCPUUtilization"
+    }
 
-#     target_value = 70.0
-#   }
-# }
+    target_value = 70.0
+  }
+}
 
 
 #listerner rule configuration

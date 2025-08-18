@@ -10,15 +10,13 @@ resource "aws_instance" "frontend" {
     }
   )
 }
-module "backend" {
-  source = "../backend"   # or git URL or relative path to backend repo
-  # pass required variables here if any
-}
+
 resource "null_resource" "frontend" {
   # Changes to any instance of the instance requires re-provisioning
   triggers = {
     instance_id = aws_instance.frontend.id
-    backend_ip  = module.backend.private_ip
+    backend_ip  = data.aws_ssm_parameter.backend_private_ip.value
+    sensitive = true
   }
 
   # Bootstrap script can run on any instance of the cluster
@@ -28,21 +26,38 @@ resource "null_resource" "frontend" {
     type = "ssh"
     user     = "ec2-user"
     password = "DevOps321"
+    agent = false
+    
   }
+
+  provisioner "remote-exec" {
+  inline = [
+    "echo Hello from frontend instance"
+  ]
+}
+
+
+
 
   provisioner "file" {
     source      = "frontend.sh"
     destination = "/tmp/frontend.sh"
   }
 
-  provisioner "remote-exec" {
-    # Bootstrap script called with public_ip of each node in the cluster
-    inline = [
-      "chmod +x /tmp/frontend.sh",
-      "sudo sh /tmp/frontend.sh ${var.environment} ${aws_instance.backend.private_ip}"
-    ]
-  }
+  provisioner "file" {
+  source      = "frontend.sh"
+  destination = "/tmp/frontend.sh"
 }
+
+provisioner "remote-exec" {
+  inline = [
+    "chmod +x /tmp/frontend.sh",
+    "sudo sh /tmp/frontend.sh ${var.environment} ${data.aws_ssm_parameter.backend_private_ip.value}"
+  ]
+}
+
+  }
+  
 
 
 resource "aws_ec2_instance_state" "frontend" {

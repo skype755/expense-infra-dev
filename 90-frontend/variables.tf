@@ -27,3 +27,9 @@ variable "zone_id" {
 variable "domain_name" {
   default = "dev-ops.chat"
 }
+
+variable "backend_private_ip" {
+  description = "Private IP of backend"
+  type        = string
+  default     = ""
+}
